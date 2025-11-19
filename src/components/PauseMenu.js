@@ -59,7 +59,7 @@ const PauseMenu = ({ visible, onResume, onRestart, onMainMenu, gameStats }) => {
             </Button>
 
             <Button
-              variant="outline"
+              variant="secondary"
               onPress={onMainMenu}
               style={styles.button}
             >
