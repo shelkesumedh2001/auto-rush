@@ -1,0 +1,14 @@
+<svg width="35" height="45" xmlns="http://www.w3.org/2000/svg">
+  <!-- Person silhouette -->
+  <!-- Head -->
+  <circle cx="17.5" cy="12" r="8" fill="#4A5568"/>
+  <!-- Body -->
+  <ellipse cx="17.5" cy="32" rx="10" ry="13" fill="#4A5568"/>
+  <!-- Arms -->
+  <rect x="6" y="22" width="4" height="12" rx="2" fill="#4A5568" transform="rotate(-20 8 22)"/>
+  <rect x="25" y="22" width="4" height="12" rx="2" fill="#4A5568" transform="rotate(20 27 22)"/>
+  <!-- Shirt detail -->
+  <circle cx="17.5" cy="26" r="3" fill="#FFF" opacity="0.3"/>
+  <!-- Waiting indicator (waving hand) -->
+  <circle cx="28" cy="15" r="3" fill="#FFD700"/>
+</svg>

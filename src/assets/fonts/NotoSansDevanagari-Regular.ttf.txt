@@ -1,0 +1,2 @@
+PLACEHOLDER: NotoSansDevanagari-Regular.ttf
+Download from Google Fonts - see FONT_REQUIREMENTS.md

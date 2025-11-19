@@ -1,0 +1,2 @@
+PLACEHOLDER: Baloo2-Bold.ttf
+Download from Google Fonts - see FONT_REQUIREMENTS.md

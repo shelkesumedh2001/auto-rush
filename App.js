@@ -13,7 +13,7 @@ import { SettingsProvider } from './src/context/SettingsContext';
 // Screens
 import SplashScreen from './src/screens/SplashScreen';
 import MainMenuScreen from './src/screens/MainMenuScreen';
-import GameScreen from './src/screens/GameScreen';
+import GameScreenPhysics from './src/screens/GameScreenPhysics';
 import GameOverScreen from './src/screens/GameOverScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -137,9 +137,9 @@ function AppContent() {
 
       case SCREENS.GAME:
         return (
-          <GameScreen
+          <GameScreenPhysics
             onGameOver={handleGameOver}
-            onPause={handlePause}
+            onPause={handleMainMenu}
           />
         );
 

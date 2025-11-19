@@ -180,6 +180,20 @@ class AudioService {
   }
 
   /**
+   * Pause all audio (for pause menu)
+   */
+  async pauseAll() {
+    await this.pauseMusic();
+  }
+
+  /**
+   * Resume all audio (from pause menu)
+   */
+  async resumeAll() {
+    await this.resumeMusic();
+  }
+
+  /**
    * Unload all sounds
    */
   async unloadAll() {

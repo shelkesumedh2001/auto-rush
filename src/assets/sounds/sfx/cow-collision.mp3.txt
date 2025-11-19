@@ -1,0 +1,2 @@
+PLACEHOLDER: cow-collision.mp3
+See SOUND_REQUIREMENTS.md for specifications.

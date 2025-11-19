@@ -1,0 +1,2 @@
+PLACEHOLDER: Baloo2-Regular.ttf
+Download from Google Fonts - see FONT_REQUIREMENTS.md

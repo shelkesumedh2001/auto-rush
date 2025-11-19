@@ -1,0 +1,2 @@
+PLACEHOLDER: crash.mp3
+See SOUND_REQUIREMENTS.md for specifications.

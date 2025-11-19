@@ -1,0 +1,4 @@
+PLACEHOLDER: menu-theme.mp3
+This file should contain upbeat Indian-inspired instrumental music for the menu screen.
+Duration: 60-90 seconds (looping)
+See SOUND_REQUIREMENTS.md for full specifications.
