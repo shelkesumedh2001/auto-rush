@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { UserProvider } from './src/context/UserContext';
 import { GameProvider } from './src/context/GameContext';
 import { SettingsProvider } from './src/context/SettingsContext';
@@ -32,6 +32,7 @@ import AdManager from './src/monetization/AdManager';
 import IAPManager from './src/monetization/IAPManager';
 
 import { COLORS } from './src/config/colors';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 // App screens enum
 const SCREENS = {
@@ -61,12 +62,18 @@ function AppContent() {
     try {
       console.log('Initializing Auto Rush...');
 
-      // Initialize services
-      await LocalizationService.initialize();
-      await AudioService.initialize();
-      await AnalyticsService.initialize();
-      await AdManager.initialize();
-      await IAPManager.initialize();
+      // Add timeout to prevent hanging
+      const initPromise = Promise.all([
+        LocalizationService.initialize(),
+        AudioService.initialize(),
+        AnalyticsService.initialize(),
+        AdManager.initialize(),
+        IAPManager.initialize(),
+      ]);
+
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 5000));
+
+      await Promise.race([initPromise, timeoutPromise]);
 
       console.log('Auto Rush initialized successfully!');
       setInitialized(true);
@@ -202,6 +209,19 @@ function AppContent() {
     }
   };
 
+  // Show loading screen while initializing
+  if (!initialized) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFD700" />
+          <Text style={styles.loadingText}>Loading Auto Rush...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -213,13 +233,15 @@ function AppContent() {
 // Root App with Providers
 export default function App() {
   return (
-    <SettingsProvider>
-      <UserProvider>
-        <GameProvider>
-          <AppContent />
-        </GameProvider>
-      </UserProvider>
-    </SettingsProvider>
+    <ErrorBoundary>
+      <SettingsProvider>
+        <UserProvider>
+          <GameProvider>
+            <AppContent />
+          </GameProvider>
+        </UserProvider>
+      </SettingsProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -227,5 +249,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.BACKGROUND,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  loadingText: {
+    color: '#FFD700',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
   },
 });
