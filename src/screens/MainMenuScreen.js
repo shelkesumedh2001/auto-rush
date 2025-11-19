@@ -17,10 +17,20 @@ import { useUser } from '../context/UserContext';
 import { useSettings } from '../context/SettingsContext';
 import LocalizationService from '../services/LocalizationService';
 import Button from '../components/ui/Button';
+import LivesDisplay from '../components/ui/LivesDisplay';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const MainMenuScreen = ({ onPlayPress, onShopPress, onSettingsPress, onMissionsPress, onLeaderboardPress }) => {
+const MainMenuScreen = ({
+  onPlayPress,
+  onShopPress,
+  onSettingsPress,
+  onMissionsPress,
+  onLeaderboardPress,
+  onCharacterPress,
+  onUpgradePress,
+  onSeasonPassPress,
+}) => {
   const { user } = useUser();
   const { settings } = useSettings();
   const [pulseAnim] = useState(new Animated.Value(1));
@@ -51,7 +61,10 @@ const MainMenuScreen = ({ onPlayPress, onShopPress, onSettingsPress, onMissionsP
           <Text style={styles.icon}>⚙️</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>AUTO RUSH</Text>
+        <View style={styles.topCenter}>
+          <Text style={styles.title}>AUTO RUSH</Text>
+          <LivesDisplay style={styles.livesDisplay} />
+        </View>
 
         <View style={styles.coinDisplay}>
           <Text style={styles.coinIcon}>🪙</Text>
@@ -74,12 +87,34 @@ const MainMenuScreen = ({ onPlayPress, onShopPress, onSettingsPress, onMissionsP
         </Text>
       </View>
 
+      {/* Season Pass Banner */}
+      <TouchableOpacity style={styles.seasonPassBanner} onPress={onSeasonPassPress}>
+        <View style={styles.seasonPassContent}>
+          <Text style={styles.seasonPassTitle}>🎁 SEASON PASS</Text>
+          <Text style={styles.seasonPassSubtitle}>Exclusive rewards & characters!</Text>
+        </View>
+        <Text style={styles.seasonPassArrow}>›</Text>
+      </TouchableOpacity>
+
       {/* Mission Panel */}
       <View style={styles.missionPanel}>
         <Text style={styles.missionTitle}>
           {LocalizationService.t('DAILY_MISSIONS')}
         </Text>
         <Text style={styles.missionSubtitle}>Complete missions for rewards</Text>
+      </View>
+
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <TouchableOpacity style={styles.quickActionButton} onPress={onCharacterPress}>
+          <Text style={styles.quickActionIcon}>🛺</Text>
+          <Text style={styles.quickActionLabel}>Characters</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.quickActionButton} onPress={onUpgradePress}>
+          <Text style={styles.quickActionIcon}>⬆️</Text>
+          <Text style={styles.quickActionLabel}>Upgrades</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Play Button */}
@@ -132,6 +167,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 16,
+  },
+  topCenter: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  livesDisplay: {
+    marginTop: 8,
   },
   iconButton: {
     width: 44,
@@ -191,6 +233,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.TEXT_SECONDARY,
   },
+  seasonPassBanner: {
+    backgroundColor: COLORS.SUCCESS,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  seasonPassContent: {
+    flex: 1,
+  },
+  seasonPassTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 4,
+  },
+  seasonPassSubtitle: {
+    fontSize: 14,
+    color: '#FFF',
+    opacity: 0.9,
+  },
+  seasonPassArrow: {
+    fontSize: 32,
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
   missionPanel: {
     backgroundColor: COLORS.SURFACE,
     marginHorizontal: 16,
@@ -207,6 +278,31 @@ const styles = StyleSheet.create({
   missionSubtitle: {
     fontSize: 14,
     color: COLORS.TEXT_SECONDARY,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  quickActionButton: {
+    flex: 1,
+    backgroundColor: COLORS.SURFACE,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  quickActionIcon: {
+    fontSize: 24,
+  },
+  quickActionLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.TEXT_PRIMARY,
   },
   playButton: {
     marginHorizontal: 16,

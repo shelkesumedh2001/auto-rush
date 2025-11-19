@@ -13,12 +13,15 @@ import { SettingsProvider } from './src/context/SettingsContext';
 // Screens
 import SplashScreen from './src/screens/SplashScreen';
 import MainMenuScreen from './src/screens/MainMenuScreen';
-import GameScreenPhysics from './src/screens/GameScreenPhysics';
+import Game3DScreen from './src/screens/Game3DScreen';
 import GameOverScreen from './src/screens/GameOverScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import MissionsScreen from './src/screens/MissionsScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
+import CharacterSelectScreen from './src/screens/CharacterSelectScreen';
+import UpgradeScreen from './src/screens/UpgradeScreen';
+import SeasonPassScreen from './src/screens/SeasonPassScreen';
 
 // Services
 import StorageService from './src/services/StorageService';
@@ -40,6 +43,9 @@ const SCREENS = {
   SETTINGS: 'settings',
   MISSIONS: 'missions',
   LEADERBOARD: 'leaderboard',
+  CHARACTER_SELECT: 'character_select',
+  UPGRADES: 'upgrades',
+  SEASON_PASS: 'season_pass',
 };
 
 function AppContent() {
@@ -113,6 +119,21 @@ function AppContent() {
     setCurrentScreen(SCREENS.LEADERBOARD);
   };
 
+  const handleCharacterPress = () => {
+    AnalyticsService.logScreenView('character_select');
+    setCurrentScreen(SCREENS.CHARACTER_SELECT);
+  };
+
+  const handleUpgradePress = () => {
+    AnalyticsService.logScreenView('upgrades');
+    setCurrentScreen(SCREENS.UPGRADES);
+  };
+
+  const handleSeasonPassPress = () => {
+    AnalyticsService.logScreenView('season_pass');
+    setCurrentScreen(SCREENS.SEASON_PASS);
+  };
+
   const handlePause = () => {
     // Could show pause menu here
     console.log('Game paused');
@@ -132,12 +153,15 @@ function AppContent() {
             onSettingsPress={handleSettingsPress}
             onMissionsPress={handleMissionsPress}
             onLeaderboardPress={handleLeaderboardPress}
+            onCharacterPress={handleCharacterPress}
+            onUpgradePress={handleUpgradePress}
+            onSeasonPassPress={handleSeasonPassPress}
           />
         );
 
       case SCREENS.GAME:
         return (
-          <GameScreenPhysics
+          <Game3DScreen
             onGameOver={handleGameOver}
             onPause={handleMainMenu}
           />
@@ -163,6 +187,15 @@ function AppContent() {
 
       case SCREENS.LEADERBOARD:
         return <LeaderboardScreen onClose={handleMainMenu} />;
+
+      case SCREENS.CHARACTER_SELECT:
+        return <CharacterSelectScreen onClose={handleMainMenu} />;
+
+      case SCREENS.UPGRADES:
+        return <UpgradeScreen onClose={handleMainMenu} />;
+
+      case SCREENS.SEASON_PASS:
+        return <SeasonPassScreen onClose={handleMainMenu} />;
 
       default:
         return <MainMenuScreen onPlayPress={handlePlayPress} />;
