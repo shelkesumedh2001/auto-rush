@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Auto Rush - 3D Endless Runner Racing Game">
+    <title>Auto Rush - 3D Racing Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="mainMenu" class="screen active">
+        <div class="menu-container">
+            <h1 class="game-title">AUTO RUSH</h1>
+            <p class="game-subtitle">3D Endless Racing</p>
+
+            <div class="stats-display">
+                <div class="stat-item">
+                    <span class="stat-icon">🪙</span>
+                    <span id="totalCoins">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🏆</span>
+                    <span id="highScore">0</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="game.startGame()">PLAY</button>
+            <button class="btn btn-secondary" onclick="game.showShop()">SHOP</button>
+            <button class="btn btn-secondary" onclick="game.showSettings()">SETTINGS</button>
+
+            <div class="premium-banner" onclick="game.showPremium()">
+                <span>✨ Go Premium - Remove Ads & Get Bonuses!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div id="gameContainer"></div>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-top">
+                <div class="hud-item">
+                    <span class="hud-label">Score</span>
+                    <span id="score" class="hud-value">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Coins</span>
+                    <span id="coins" class="hud-value">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Speed</span>
+                    <span id="speed" class="hud-value">0</span>
+                </div>
+            </div>
+
+            <div class="power-ups-display" id="powerUpsDisplay"></div>
+
+            <button class="btn-pause" onclick="game.pauseGame()">⏸</button>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobileControls" class="mobile-controls">
+            <button class="control-btn left" ontouchstart="game.moveLeft()" ontouchend="game.stopMove()">←</button>
+            <button class="control-btn right" ontouchstart="game.moveRight()" ontouchend="game.stopMove()">→</button>
+            <button class="control-btn jump" ontouchstart="game.jump()">↑</button>
+        </div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pauseMenu" class="overlay">
+        <div class="menu-container">
+            <h2>PAUSED</h2>
+            <button class="btn btn-primary" onclick="game.resumeGame()">RESUME</button>
+            <button class="btn btn-secondary" onclick="game.restartGame()">RESTART</button>
+            <button class="btn btn-secondary" onclick="game.backToMenu()">MAIN MENU</button>
+
+            <div class="ad-container">
+                <div class="ad-placeholder">
+                    <p>🎬 Watch Ad for Extra Coins</p>
+                    <button class="btn btn-ad" onclick="game.watchAd()">WATCH AD (+50 coins)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="overlay">
+        <div class="menu-container">
+            <h2>GAME OVER</h2>
+            <div class="game-over-stats">
+                <div class="stat-row">
+                    <span>Final Score:</span>
+                    <span id="finalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Coins Earned:</span>
+                    <span id="coinsEarned">0</span>
+                </div>
+                <div class="stat-row highlight">
+                    <span>High Score:</span>
+                    <span id="finalHighScore">0</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="game.restartGame()">PLAY AGAIN</button>
+            <button class="btn btn-secondary" onclick="game.backToMenu()">MAIN MENU</button>
+
+            <div class="ad-container">
+                <div class="ad-placeholder">
+                    <p>🎬 Watch Ad to Continue</p>
+                    <button class="btn btn-ad" onclick="game.watchAdRevive()">REVIVE (+1 Life)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop -->
+    <div id="shopScreen" class="overlay">
+        <div class="menu-container shop-container">
+            <h2>SHOP</h2>
+            <button class="btn-close" onclick="game.closeShop()">✕</button>
+
+            <div class="shop-tabs">
+                <button class="tab-btn active" onclick="game.showShopTab('cars')">CARS</button>
+                <button class="tab-btn" onclick="game.showShopTab('powerups')">POWER-UPS</button>
+                <button class="tab-btn" onclick="game.showShopTab('coins')">COINS</button>
+            </div>
+
+            <div id="shopContent" class="shop-content">
+                <!-- Cars Tab -->
+                <div class="shop-tab active" data-tab="cars">
+                    <div class="shop-items">
+                        <div class="shop-item">
+                            <div class="item-preview">🚗</div>
+                            <h3>Classic Car</h3>
+                            <p>Default vehicle</p>
+                            <button class="btn btn-small btn-equipped">EQUIPPED</button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-preview">🏎️</div>
+                            <h3>Sports Car</h3>
+                            <p>+10% Speed</p>
+                            <button class="btn btn-small btn-buy" onclick="game.buyItem('car_sports', 500)">
+                                🪙 500
+                            </button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-preview">🚙</div>
+                            <h3>SUV</h3>
+                            <p>+20% Durability</p>
+                            <button class="btn btn-small btn-buy" onclick="game.buyItem('car_suv', 1000)">
+                                🪙 1000
+                            </button>
+                        </div>
+                        <div class="shop-item premium">
+                            <div class="item-preview">🏁</div>
+                            <h3>Formula One</h3>
+                            <p>+25% Speed & Coin Magnet</p>
+                            <button class="btn btn-small btn-premium" onclick="game.buyItem('car_f1', 2500)">
+                                🪙 2500
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Power-ups Tab -->
+                <div class="shop-tab" data-tab="powerups">
+                    <div class="shop-items">
+                        <div class="shop-item">
+                            <div class="item-preview">🛡️</div>
+                            <h3>Shield</h3>
+                            <p>Protect from 1 collision</p>
+                            <button class="btn btn-small btn-buy" onclick="game.buyPowerUp('shield', 100)">
+                                🪙 100
+                            </button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-preview">⚡</div>
+                            <h3>Speed Boost</h3>
+                            <p>2x speed for 10 seconds</p>
+                            <button class="btn btn-small btn-buy" onclick="game.buyPowerUp('speed', 150)">
+                                🪙 150
+                            </button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-preview">🧲</div>
+                            <h3>Magnet</h3>
+                            <p>Attract nearby coins</p>
+                            <button class="btn btn-small btn-buy" onclick="game.buyPowerUp('magnet', 200)">
+                                🪙 200
+                            </button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-preview">✖️2</div>
+                            <h3>Double Coins</h3>
+                            <p>2x coins for 15 seconds</p>
+                            <button class="btn btn-small btn-buy" onclick="game.buyPowerUp('double', 250)">
+                                🪙 250
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coins Tab -->
+                <div class="shop-tab" data-tab="coins">
+                    <div class="shop-items">
+                        <div class="shop-item">
+                            <div class="item-preview">💰</div>
+                            <h3>100 Coins</h3>
+                            <p>Small pack</p>
+                            <button class="btn btn-small btn-buy" onclick="game.purchaseCoins(100, 0.99)">
+                                $0.99
+                            </button>
+                        </div>
+                        <div class="shop-item">
+                            <div class="item-preview">💰💰</div>
+                            <h3>500 Coins</h3>
+                            <p>Medium pack</p>
+                            <button class="btn btn-small btn-buy" onclick="game.purchaseCoins(500, 3.99)">
+                                $3.99
+                            </button>
+                        </div>
+                        <div class="shop-item recommended">
+                            <div class="ribbon">BEST VALUE</div>
+                            <div class="item-preview">💰💰💰</div>
+                            <h3>1500 Coins</h3>
+                            <p>Large pack + 200 bonus</p>
+                            <button class="btn btn-small btn-buy" onclick="game.purchaseCoins(1700, 9.99)">
+                                $9.99
+                            </button>
+                        </div>
+                        <div class="shop-item premium">
+                            <div class="item-preview">💎</div>
+                            <h3>5000 Coins</h3>
+                            <p>Mega pack + 1000 bonus</p>
+                            <button class="btn btn-small btn-buy" onclick="game.purchaseCoins(6000, 24.99)">
+                                $24.99
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Upgrade -->
+    <div id="premiumScreen" class="overlay">
+        <div class="menu-container premium-container">
+            <h2>✨ PREMIUM VERSION</h2>
+            <button class="btn-close" onclick="game.closePremium()">✕</button>
+
+            <div class="premium-features">
+                <div class="feature-item">
+                    <span class="feature-icon">🚫</span>
+                    <div>
+                        <h3>No Ads</h3>
+                        <p>Remove all advertisements</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✖️2</span>
+                    <div>
+                        <h3>Double Rewards</h3>
+                        <p>2x coins from all sources</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🏎️</span>
+                    <div>
+                        <h3>Exclusive Cars</h3>
+                        <p>Access to premium vehicles</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🎁</span>
+                    <div>
+                        <h3>Daily Rewards</h3>
+                        <p>Get 100 coins every day</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="premium-price">
+                <h3>$4.99 / one-time payment</h3>
+            </div>
+
+            <button class="btn btn-primary btn-large" onclick="game.purchasePremium()">
+                UPGRADE NOW
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settingsScreen" class="overlay">
+        <div class="menu-container">
+            <h2>SETTINGS</h2>
+            <button class="btn-close" onclick="game.closeSettings()">✕</button>
+
+            <div class="settings-list">
+                <div class="setting-item">
+                    <span>Sound Effects</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="sfxToggle" checked onchange="game.toggleSFX()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Music</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="musicToggle" checked onchange="game.toggleMusic()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Graphics Quality</span>
+                    <select id="qualitySelect" onchange="game.changeQuality()">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <span>Control Sensitivity</span>
+                    <input type="range" id="sensitivitySlider" min="0.5" max="2" step="0.1" value="1" onchange="game.changeSensitivity()">
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="game.resetProgress()">RESET PROGRESS</button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="notification"></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
