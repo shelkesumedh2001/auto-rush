@@ -34,14 +34,7 @@
         "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
       }
     },
-    "plugins": [
-      [
-        "expo-ads-admob",
-        {
-          "userTrackingPermission": "This identifier will be used to deliver personalized ads to you."
-        }
-      ]
-    ],
+    "plugins": [],
     "extra": {
       "eas": {
         "projectId": "auto-rush-mumbai-2024"
