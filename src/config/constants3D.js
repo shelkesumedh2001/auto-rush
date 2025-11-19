@@ -3,9 +3,26 @@
  * Intense, fast-paced endless runner configuration
  */
 
-import { Dimensions } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+// Get screen dimensions (works on both web and mobile)
+let SCREEN_WIDTH = 375; // Default fallback
+let SCREEN_HEIGHT = 667; // Default fallback
+
+try {
+  if (Platform.OS === 'web') {
+    // Use window dimensions on web
+    SCREEN_WIDTH = typeof window !== 'undefined' ? window.innerWidth : 375;
+    SCREEN_HEIGHT = typeof window !== 'undefined' ? window.innerHeight : 667;
+  } else {
+    // Use Dimensions API on native
+    const dims = Dimensions.get('window');
+    SCREEN_WIDTH = dims.width;
+    SCREEN_HEIGHT = dims.height;
+  }
+} catch (error) {
+  console.warn('Could not get screen dimensions, using defaults:', error);
+}
 
 export const GAME_3D = {
   // Screen dimensions

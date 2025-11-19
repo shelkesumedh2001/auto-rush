@@ -10,7 +10,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
@@ -20,8 +19,6 @@ import { CHARACTERS } from '../config/constants3D';
 import Button from '../components/ui/Button';
 import AutoRickshaw3D from '../game3D/components/AutoRickshaw3D';
 import LocalizationService from '../services/LocalizationService';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CharacterSelectScreen = ({ onClose }) => {
   const { user, selectCharacter, unlockCharacter } = useUser();

@@ -10,7 +10,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { COLORS } from '../config/colors';
 import { useUser } from '../context/UserContext';
@@ -18,8 +17,6 @@ import { useSettings } from '../context/SettingsContext';
 import LocalizationService from '../services/LocalizationService';
 import Button from '../components/ui/Button';
 import LivesDisplay from '../components/ui/LivesDisplay';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const MainMenuScreen = ({
   onPlayPress,

@@ -10,15 +10,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
-} from 'react';
+} from 'react-native';
 import { useUser } from '../context/UserContext';
 import { COLORS, SHADOWS } from '../config/colors';
 import Button from '../components/ui/Button';
 import IAPManager from '../monetization/IAPManager';
 import LocalizationService from '../services/LocalizationService';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Season Pass configuration
 const SEASON_CONFIG = {

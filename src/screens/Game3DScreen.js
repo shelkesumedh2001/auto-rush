@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { View, StyleSheet, Text, Dimensions, PanResponder } from 'react-native';
+import { View, StyleSheet, Text, PanResponder, useWindowDimensions } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import { COLORS } from '../config/colors';
@@ -17,8 +17,6 @@ import AutoRickshaw3D from '../game3D/components/AutoRickshaw3D';
 import Road3D from '../game3D/components/Road3D';
 import Obstacle3D from '../game3D/components/Obstacle3D';
 import Collectible3D from '../game3D/components/Collectible3D';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Game Scene Component (runs inside Canvas)
 const GameScene = ({
