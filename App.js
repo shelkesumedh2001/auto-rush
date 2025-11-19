@@ -17,6 +17,8 @@ import GameScreen from './src/screens/GameScreen';
 import GameOverScreen from './src/screens/GameOverScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import MissionsScreen from './src/screens/MissionsScreen';
+import LeaderboardScreen from './src/screens/LeaderboardScreen';
 
 // Services
 import StorageService from './src/services/StorageService';
@@ -36,6 +38,8 @@ const SCREENS = {
   GAME_OVER: 'game_over',
   SHOP: 'shop',
   SETTINGS: 'settings',
+  MISSIONS: 'missions',
+  LEADERBOARD: 'leaderboard',
 };
 
 function AppContent() {
@@ -99,6 +103,16 @@ function AppContent() {
     setCurrentScreen(SCREENS.SETTINGS);
   };
 
+  const handleMissionsPress = () => {
+    AnalyticsService.logScreenView('missions');
+    setCurrentScreen(SCREENS.MISSIONS);
+  };
+
+  const handleLeaderboardPress = () => {
+    AnalyticsService.logScreenView('leaderboard');
+    setCurrentScreen(SCREENS.LEADERBOARD);
+  };
+
   const handlePause = () => {
     // Could show pause menu here
     console.log('Game paused');
@@ -116,6 +130,8 @@ function AppContent() {
             onPlayPress={handlePlayPress}
             onShopPress={handleShopPress}
             onSettingsPress={handleSettingsPress}
+            onMissionsPress={handleMissionsPress}
+            onLeaderboardPress={handleLeaderboardPress}
           />
         );
 
@@ -141,6 +157,12 @@ function AppContent() {
 
       case SCREENS.SETTINGS:
         return <SettingsScreen onClose={handleMainMenu} />;
+
+      case SCREENS.MISSIONS:
+        return <MissionsScreen onClose={handleMainMenu} />;
+
+      case SCREENS.LEADERBOARD:
+        return <LeaderboardScreen onClose={handleMainMenu} />;
 
       default:
         return <MainMenuScreen onPlayPress={handlePlayPress} />;

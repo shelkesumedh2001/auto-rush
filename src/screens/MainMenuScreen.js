@@ -20,7 +20,7 @@ import Button from '../components/ui/Button';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const MainMenuScreen = ({ onPlayPress, onShopPress, onSettingsPress }) => {
+const MainMenuScreen = ({ onPlayPress, onShopPress, onSettingsPress, onMissionsPress, onLeaderboardPress }) => {
   const { user } = useUser();
   const { settings } = useSettings();
   const [pulseAnim] = useState(new Animated.Value(1));
@@ -101,12 +101,12 @@ const MainMenuScreen = ({ onPlayPress, onShopPress, onSettingsPress }) => {
           <Text style={styles.navLabel}>{LocalizationService.t('SHOP')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navButton}>
+        <TouchableOpacity style={styles.navButton} onPress={onMissionsPress}>
           <Text style={styles.navIcon}>📋</Text>
           <Text style={styles.navLabel}>{LocalizationService.t('MISSIONS')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navButton}>
+        <TouchableOpacity style={styles.navButton} onPress={onLeaderboardPress}>
           <Text style={styles.navIcon}>🏆</Text>
           <Text style={styles.navLabel}>{LocalizationService.t('LEADERBOARD')}</Text>
         </TouchableOpacity>
