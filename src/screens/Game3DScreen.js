@@ -44,12 +44,30 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
     startGame();
     startGameLoop();
 
+    // Keyboard controls (for web)
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        handleMoveLeft();
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        handleMoveRight();
+      } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
+        handleJump();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', handleKeyDown);
+      }
     };
-  }, []);
+  }, [currentLane, isJumping]);
 
   // Game loop - OPTIMIZED
   const startGameLoop = () => {
@@ -336,7 +354,9 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
 
       {/* Tutorial hint */}
       <View style={styles.tutorial}>
-        <Text style={styles.tutorialText}>← → to dodge • ⬆️ to jump</Text>
+        <Text style={styles.tutorialText}>
+          Arrow Keys / A-D to dodge • Space / W to jump
+        </Text>
       </View>
     </View>
   );
