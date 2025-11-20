@@ -1,106 +1,14 @@
 /**
- * 3D Game Screen - Subway Surfers Style
- * Main 3D endless runner game
+ * 3D Game Screen - OPTIMIZED
+ * Subway Surfers style with working mechanics
  */
 
-import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { View, StyleSheet, Text, PanResponder, useWindowDimensions } from 'react-native';
-import { Canvas } from '@react-three/fiber';
-import { PerspectiveCamera, OrbitControls } from '@react-three/drei';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '../config/colors';
-import { GAME_3D, PATTERNS_3D } from '../config/constants3D';
+import { GAME_3D } from '../config/constants3D';
 import { useGame } from '../context/GameContext';
 import { useUser } from '../context/UserContext';
-
-// 3D Components
-import AutoRickshaw3D from '../game3D/components/AutoRickshaw3D';
-import Road3D from '../game3D/components/Road3D';
-import Obstacle3D from '../game3D/components/Obstacle3D';
-import Collectible3D from '../game3D/components/Collectible3D';
-
-// Game Scene Component (runs inside Canvas)
-const GameScene = ({
-  currentLane,
-  isJumping,
-  isSliding,
-  shieldActive,
-  magnetActive,
-  speed,
-  obstacles,
-  collectibles,
-  onObstaclePass,
-  onCollectibleCollect,
-  onCollision,
-}) => {
-  const playerRef = useRef();
-
-  return (
-    <>
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <directionalLight
-        position={[10, 20, 10]}
-        intensity={1}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-      <hemisphereLight args={[0x87CEEB, 0x8B4513, 0.4]} />
-
-      {/* Camera */}
-      <PerspectiveCamera
-        makeDefault
-        position={[0, GAME_3D.CAMERA.POSITION_Y, GAME_3D.CAMERA.POSITION_Z]}
-        fov={GAME_3D.CAMERA.FOV}
-        rotation={[GAME_3D.CAMERA.TILT_ANGLE * Math.PI / 180, 0, 0]}
-      />
-
-      {/* Player Auto-Rickshaw */}
-      <AutoRickshaw3D
-        ref={playerRef}
-        targetLane={GAME_3D.LANE_POSITIONS[currentLane]}
-        isJumping={isJumping}
-        isSliding={isSliding}
-        shieldActive={shieldActive}
-        magnetActive={magnetActive}
-      />
-
-      {/* Road */}
-      <Road3D speed={speed} />
-
-      {/* Obstacles */}
-      {obstacles.map((obstacle) => (
-        <Obstacle3D
-          key={obstacle.id}
-          type={obstacle.type}
-          position={[
-            GAME_3D.LANE_POSITIONS[obstacle.lane],
-            0,
-            obstacle.z
-          ]}
-          onCollision={() => onCollision(obstacle.id)}
-        />
-      ))}
-
-      {/* Collectibles */}
-      {collectibles.map((item) => (
-        <Collectible3D
-          key={item.id}
-          type={item.type}
-          position={[
-            GAME_3D.LANE_POSITIONS[item.lane],
-            1,
-            item.z
-          ]}
-          onCollect={() => onCollectibleCollect(item.id)}
-        />
-      ))}
-
-      {/* Fog */}
-      <fog attach="fog" args={[GAME_3D.ENVIRONMENT.FOG_COLOR, GAME_3D.ENVIRONMENT.FOG_NEAR, GAME_3D.ENVIRONMENT.FOG_FAR]} />
-    </>
-  );
-};
 
 const Game3DScreen = ({ onGameOver, onPause }) => {
   const { startGame, updateScore, updateDistance, addCoins } = useGame();
@@ -109,58 +17,29 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
   // Game state
   const [currentLane, setCurrentLane] = useState(1); // 0=left, 1=center, 2=right
   const [isJumping, setIsJumping] = useState(false);
-  const [isSliding, setIsSliding] = useState(false);
   const [gameRunning, setGameRunning] = useState(true);
   const [speed, setSpeed] = useState(GAME_3D.INITIAL_SPEED);
 
   // Power-ups
   const [shieldActive, setShieldActive] = useState(false);
-  const [magnetActive, setMagnetActive] = useState(false);
 
-  // Game objects
+  // Game objects (simplified for performance)
   const [obstacles, setObstacles] = useState([]);
-  const [collectibles, setCollectibles] = useState([]);
+  const [coins, setCoins] = useState([]);
 
   // Stats
   const [score, setScore] = useState(0);
   const [distance, setDistance] = useState(0);
-  const [coins, setCoins] = useState(0);
+  const [coinsCollected, setCoinsCollected] = useState(0);
 
-  // Refs for game loop
+  // Refs
   const gameTimeRef = useRef(0);
   const lastSpawnTimeRef = useRef(0);
-  const nextObstacleIdRef = useRef(0);
+  const nextIdRef = useRef(0);
   const animationFrameRef = useRef();
+  const playerYRef = useRef(0); // For jump animation
 
-  // Gesture handler
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (evt, gestureState) => {
-        const { dx, dy } = gestureState;
-
-        // Swipe up = Jump
-        if (dy < -50 && Math.abs(dy) > Math.abs(dx)) {
-          handleJump();
-        }
-        // Swipe down = Slide
-        else if (dy > 50 && Math.abs(dy) > Math.abs(dx)) {
-          handleSlide();
-        }
-        // Swipe left = Move left
-        else if (dx < -50 && Math.abs(dx) > Math.abs(dy)) {
-          handleMoveLeft();
-        }
-        // Swipe right = Move right
-        else if (dx > 50 && Math.abs(dx) > Math.abs(dy)) {
-          handleMoveRight();
-        }
-      },
-    })
-  ).current;
-
-  // Initialize game
+  // Initialize
   useEffect(() => {
     startGame();
     startGameLoop();
@@ -172,7 +51,7 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
     };
   }, []);
 
-  // Game loop
+  // Game loop - OPTIMIZED
   const startGameLoop = () => {
     let lastTime = Date.now();
 
@@ -180,35 +59,54 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
       if (!gameRunning) return;
 
       const currentTime = Date.now();
-      const delta = (currentTime - lastTime) / 1000; // Convert to seconds
+      const delta = Math.min((currentTime - lastTime) / 1000, 0.1); // Cap delta
       lastTime = currentTime;
 
-      // Update game time
       gameTimeRef.current += delta;
 
-      // Update speed (progressive difficulty)
-      if (gameTimeRef.current % GAME_3D.SPEED_INCREMENT_INTERVAL < delta) {
-        if (speed < GAME_3D.MAX_SPEED) {
-          setSpeed(prev => Math.min(prev + GAME_3D.SPEED_INCREMENT, GAME_3D.MAX_SPEED));
-        }
-      }
+      // Update speed
+      const newSpeed = Math.min(
+        GAME_3D.INITIAL_SPEED + gameTimeRef.current * 0.5,
+        GAME_3D.MAX_SPEED
+      );
+      setSpeed(newSpeed);
 
       // Update distance and score
-      const newDistance = distance + speed * delta;
-      const newScore = Math.floor(newDistance * GAME_3D.DISTANCE_TO_SCORE);
-      setDistance(newDistance);
-      setScore(newScore);
-      updateDistance(newDistance);
-      updateScore(newScore);
+      const distanceGain = newSpeed * delta * 10;
+      setDistance(prev => {
+        const newDist = prev + distanceGain;
+        setScore(Math.floor(newDist));
+        updateDistance(newDist);
+        updateScore(Math.floor(newDist));
+        return newDist;
+      });
 
       // Spawn obstacles
-      spawnObstacles(delta);
+      if (gameTimeRef.current - lastSpawnTimeRef.current >= 1.5) {
+        spawnObstacle();
+        spawnCoins();
+        lastSpawnTimeRef.current = gameTimeRef.current;
+      }
 
-      // Update obstacle positions
-      updateObstacles(delta);
+      // Update positions
+      setObstacles(prev =>
+        prev
+          .map(obs => ({ ...obs, y: obs.y + newSpeed * delta * 60 }))
+          .filter(obs => obs.y < 600)
+      );
 
-      // Update collectibles
-      updateCollectibles(delta);
+      setCoins(prev =>
+        prev
+          .map(coin => ({ ...coin, y: coin.y + newSpeed * delta * 60 }))
+          .filter(coin => coin.y < 600)
+      );
+
+      // Update jump animation
+      if (isJumping) {
+        playerYRef.current = Math.sin((Date.now() % 600) / 600 * Math.PI) * -80;
+      } else {
+        playerYRef.current = 0;
+      }
 
       // Check collisions
       checkCollisions();
@@ -219,258 +117,226 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
     animationFrameRef.current = requestAnimationFrame(loop);
   };
 
-  // Spawn obstacles
-  const spawnObstacles = (delta) => {
-    const currentInterval = Math.max(
-      GAME_3D.SPAWN.MIN_INTERVAL,
-      GAME_3D.SPAWN.INITIAL_INTERVAL - (gameTimeRef.current * 0.01)
-    );
+  const spawnObstacle = () => {
+    const types = ['car', 'bus', 'barrier', 'cow'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const lanes = [0, 1, 2];
 
-    if (gameTimeRef.current - lastSpawnTimeRef.current >= currentInterval) {
-      lastSpawnTimeRef.current = gameTimeRef.current;
+    // Don't spawn in player's current lane always
+    const availableLanes = Math.random() < 0.3
+      ? lanes
+      : lanes.filter(l => l !== currentLane);
 
-      // Spawn pattern or single obstacle
-      if (Math.random() < 0.6) {
-        spawnPattern();
-      } else {
-        spawnSingleObstacle();
-      }
+    const randomLane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
 
-      // Maybe spawn collectibles
-      if (Math.random() < GAME_3D.COINS.SPAWN_RATE) {
-        spawnCollectible('COIN');
-      }
+    setObstacles(prev => [
+      ...prev,
+      {
+        id: `obs_${nextIdRef.current++}`,
+        type: randomType,
+        lane: randomLane,
+        y: -100,
+        height: randomType === 'barrier' ? 40 : 60,
+      },
+    ]);
+  };
 
-      if (Math.random() < GAME_3D.PASSENGERS.SPAWN_RATE) {
-        spawnCollectible('PASSENGER');
-      }
-
-      if (Math.random() < GAME_3D.POWERUPS.SPAWN_RATE) {
-        const powerupTypes = ['SHIELD', 'MAGNET', 'BOOST', 'MULTIPLIER'];
-        const randomType = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
-        spawnCollectible(randomType);
-      }
+  const spawnCoins = () => {
+    if (Math.random() < 0.7) {
+      const randomLane = Math.floor(Math.random() * 3);
+      setCoins(prev => [
+        ...prev,
+        {
+          id: `coin_${nextIdRef.current++}`,
+          lane: randomLane,
+          y: -100,
+        },
+      ]);
     }
   };
 
-  const spawnPattern = () => {
-    // Select pattern based on difficulty
-    const patternKeys = Object.keys(PATTERNS_3D);
-    const randomPattern = PATTERNS_3D[patternKeys[Math.floor(Math.random() * patternKeys.length)]];
-
-    randomPattern.forEach(({ lane, type, offset }) => {
-      const newObstacle = {
-        id: `obstacle_${nextObstacleIdRef.current++}`,
-        type,
-        lane,
-        z: -GAME_3D.SPAWN.SPAWN_DISTANCE - offset,
-      };
-
-      setObstacles(prev => [...prev, newObstacle]);
-    });
-  };
-
-  const spawnSingleObstacle = () => {
-    const types = ['CAR', 'BUS', 'TRUCK', 'BARRIER'];
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    const randomLane = Math.floor(Math.random() * 3);
-
-    const newObstacle = {
-      id: `obstacle_${nextObstacleIdRef.current++}`,
-      type: randomType,
-      lane: randomLane,
-      z: -GAME_3D.SPAWN.SPAWN_DISTANCE,
-    };
-
-    setObstacles(prev => [...prev, newObstacle]);
-  };
-
-  const spawnCollectible = (type) => {
-    const randomLane = Math.floor(Math.random() * 3);
-
-    const newCollectible = {
-      id: `collectible_${nextObstacleIdRef.current++}`,
-      type,
-      lane: randomLane,
-      z: -GAME_3D.SPAWN.SPAWN_DISTANCE,
-    };
-
-    setCollectibles(prev => [...prev, newCollectible]);
-  };
-
-  // Update positions
-  const updateObstacles = (delta) => {
-    setObstacles(prev =>
-      prev
-        .map(obs => ({
-          ...obs,
-          z: obs.z + speed * delta,
-        }))
-        .filter(obs => obs.z < GAME_3D.SPAWN.DESPAWN_DISTANCE * -1) // Remove off-screen
-    );
-  };
-
-  const updateCollectibles = (delta) => {
-    setCollectibles(prev =>
-      prev
-        .map(item => ({
-          ...item,
-          z: item.z + speed * delta,
-        }))
-        .filter(item => item.z < GAME_3D.SPAWN.DESPAWN_DISTANCE * -1)
-    );
-  };
-
-  // Collision detection
   const checkCollisions = () => {
-    const playerZ = GAME_3D.AUTO.POSITION_Z;
-    const collisionRange = 1.5;
+    const playerY = 250; // Player position
 
     // Check obstacle collisions
-    obstacles.forEach(obstacle => {
-      const isInLane = obstacle.lane === currentLane;
-      const isInRange = Math.abs(obstacle.z - playerZ) < collisionRange;
+    obstacles.forEach(obs => {
+      if (obs.lane === currentLane) {
+        const distY = Math.abs(obs.y - playerY);
 
-      if (isInLane && isInRange && !shieldActive && !isJumping) {
-        handleCollision(obstacle.id);
+        if (distY < 50) {
+          // Can jump over barriers
+          if (obs.type === 'barrier' && isJumping) {
+            return; // Jumped over!
+          }
+
+          if (!shieldActive) {
+            handleCrash();
+          } else {
+            // Shield absorbed hit
+            setShieldActive(false);
+            setObstacles(prev => prev.filter(o => o.id !== obs.id));
+          }
+        }
       }
     });
 
-    // Check collectible collection
-    collectibles.forEach(item => {
-      const isInLane = item.lane === currentLane;
-      const isInRange = Math.abs(item.z - playerZ) < collisionRange;
+    // Check coin collections
+    coins.forEach(coin => {
+      if (coin.lane === currentLane) {
+        const distY = Math.abs(coin.y - playerY);
 
-      if (isInLane && isInRange) {
-        handleCollectibleCollect(item.id, item.type);
+        if (distY < 40) {
+          setCoinsCollected(prev => prev + 1);
+          addCoins(10);
+          setCoins(prev => prev.filter(c => c.id !== coin.id));
+        }
       }
     });
   };
 
-  // Movement handlers
-  const handleMoveLeft = () => {
-    if (currentLane > 0) {
-      setCurrentLane(prev => prev - 1);
-    }
-  };
-
-  const handleMoveRight = () => {
-    if (currentLane < 2) {
-      setCurrentLane(prev => prev + 1);
-    }
-  };
-
-  const handleJump = () => {
-    if (!isJumping && !isSliding) {
-      setIsJumping(true);
-      setTimeout(() => setIsJumping(false), GAME_3D.AUTO.JUMP_DURATION * 1000);
-    }
-  };
-
-  const handleSlide = () => {
-    if (!isJumping && !isSliding) {
-      setIsSliding(true);
-      setTimeout(() => setIsSliding(false), GAME_3D.AUTO.SLIDE_DURATION * 1000);
-    }
-  };
-
-  // Collision handler
-  const handleCollision = (obstacleId) => {
-    if (shieldActive) {
-      // Shield absorbed hit
-      setShieldActive(false);
-      // Remove obstacle
-      setObstacles(prev => prev.filter(obs => obs.id !== obstacleId));
-    } else {
-      // Game over
-      setGameRunning(false);
-      handleGameOver();
-    }
-  };
-
-  // Collectible handler
-  const handleCollectibleCollect = (id, type) => {
-    // Remove collectible
-    setCollectibles(prev => prev.filter(item => item.id !== id));
-
-    // Handle different types
-    if (type === 'COIN') {
-      const coinValue = magnetActive ? GAME_3D.COINS.MAGNET_VALUE : GAME_3D.COINS.VALUE;
-      setCoins(prev => prev + coinValue);
-      addCoins(coinValue * GAME_3D.SCORE.COIN);
-    } else if (type === 'PASSENGER') {
-      setScore(prev => prev + GAME_3D.SCORE.PASSENGER);
-    } else if (type === 'SHIELD') {
-      setShieldActive(true);
-      setTimeout(() => setShieldActive(false), GAME_3D.POWERUPS.SHIELD_DURATION * 1000);
-    } else if (type === 'MAGNET') {
-      setMagnetActive(true);
-      setTimeout(() => setMagnetActive(false), GAME_3D.POWERUPS.MAGNET_DURATION * 1000);
-    }
-    // Add more power-up handlers...
-  };
-
-  // Game over
-  const handleGameOver = () => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
+  const handleCrash = () => {
+    setGameRunning(false);
 
     if (score > (user.highScore || 0)) {
       updateHighScore(score);
     }
 
-    addUserCoins(coins);
+    addUserCoins(coinsCollected);
 
     setTimeout(() => {
       onGameOver({
         score,
         distance: Math.floor(distance),
-        coins,
+        coins: coinsCollected,
       });
-    }, 1000);
+    }, 500);
   };
 
-  return (
-    <View style={styles.container} {...panResponder.panHandlers}>
-      {/* 3D Canvas */}
-      <Canvas style={styles.canvas}>
-        <Suspense fallback={null}>
-          <GameScene
-            currentLane={currentLane}
-            isJumping={isJumping}
-            isSliding={isSliding}
-            shieldActive={shieldActive}
-            magnetActive={magnetActive}
-            speed={speed}
-            obstacles={obstacles}
-            collectibles={collectibles}
-            onCollision={handleCollision}
-            onCollectibleCollect={handleCollectibleCollect}
-          />
-        </Suspense>
-      </Canvas>
+  // Controls
+  const handleMoveLeft = () => {
+    if (currentLane > 0) setCurrentLane(prev => prev - 1);
+  };
 
-      {/* HUD Overlay */}
-      <View style={styles.hud} pointerEvents="none">
-        <View style={styles.stats}>
-          <Text style={styles.statText}>Score: {score}</Text>
-          <Text style={styles.statText}>Distance: {Math.floor(distance)}m</Text>
-          <Text style={styles.statText}>Coins: 🪙 {coins}</Text>
+  const handleMoveRight = () => {
+    if (currentLane < 2) setCurrentLane(prev => prev + 1);
+  };
+
+  const handleJump = () => {
+    if (!isJumping) {
+      setIsJumping(true);
+      setTimeout(() => setIsJumping(false), 600);
+    }
+  };
+
+  // Lane X positions
+  const laneX = [60, 165, 270];
+
+  return (
+    <View style={styles.container}>
+      {/* Canvas - 2.5D rendering */}
+      <View style={styles.gameArea}>
+        {/* Road */}
+        <View style={styles.road}>
+          {/* Lane dividers */}
+          <View style={[styles.laneDivider, { left: 123 }]} />
+          <View style={[styles.laneDivider, { left: 217 }]} />
         </View>
 
-        {/* Power-up indicators */}
-        {(shieldActive || magnetActive) && (
-          <View style={styles.powerups}>
-            {shieldActive && <Text style={styles.powerupIcon}>🛡️</Text>}
-            {magnetActive && <Text style={styles.powerupIcon}>🧲</Text>}
+        {/* Obstacles */}
+        {obstacles.map(obs => (
+          <View
+            key={obs.id}
+            style={[
+              styles.obstacle,
+              styles[obs.type],
+              {
+                left: laneX[obs.lane],
+                top: obs.y,
+              },
+            ]}
+          >
+            <Text style={styles.obstacleIcon}>
+              {obs.type === 'car' && '🚗'}
+              {obs.type === 'bus' && '🚌'}
+              {obs.type === 'barrier' && '🚧'}
+              {obs.type === 'cow' && '🐄'}
+            </Text>
+          </View>
+        ))}
+
+        {/* Coins */}
+        {coins.map(coin => (
+          <View
+            key={coin.id}
+            style={[styles.coin, { left: laneX[coin.lane] + 25, top: coin.y }]}
+          >
+            <Text style={styles.coinIcon}>🪙</Text>
+          </View>
+        ))}
+
+        {/* Player Auto-rickshaw */}
+        <View
+          style={[
+            styles.player,
+            {
+              left: laneX[currentLane],
+              bottom: 100 - playerYRef.current,
+              transform: [{ scale: isJumping ? 0.9 : 1 }],
+            },
+          ]}
+        >
+          {shieldActive && <View style={styles.shield} />}
+          <Text style={styles.playerIcon}>🛺</Text>
+        </View>
+
+        {/* Mumbai scenery */}
+        <View style={styles.scenery}>
+          <Text style={styles.buildingLeft}>🏢</Text>
+          <Text style={styles.buildingRight}>🏬</Text>
+        </View>
+      </View>
+
+      {/* HUD */}
+      <View style={styles.hud}>
+        <View style={styles.hudTop}>
+          <Text style={styles.hudText}>Score: {score}</Text>
+          <Text style={styles.hudText}>Coins: 🪙 {coinsCollected}</Text>
+        </View>
+
+        {shieldActive && (
+          <View style={styles.powerupIndicator}>
+            <Text style={styles.powerupIcon}>🛡️</Text>
           </View>
         )}
       </View>
 
-      {/* Tutorial */}
-      <View style={styles.tutorial} pointerEvents="none">
-        <Text style={styles.tutorialText}>Swipe to Move • Jump • Slide</Text>
+      {/* Controls */}
+      <View style={styles.controls}>
+        <View style={styles.leftControls}>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={handleMoveLeft}
+            disabled={currentLane === 0}
+          >
+            <Text style={styles.controlIcon}>←</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={handleMoveRight}
+            disabled={currentLane === 2}
+          >
+            <Text style={styles.controlIcon}>→</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.jumpButton} onPress={handleJump}>
+          <Text style={styles.controlIcon}>⬆️</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tutorial hint */}
+      <View style={styles.tutorial}>
+        <Text style={styles.tutorialText}>← → to dodge • ⬆️ to jump</Text>
       </View>
     </View>
   );
@@ -479,43 +345,162 @@ const Game3DScreen = ({ onGameOver, onPause }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#87CEEB', // Sky blue
   },
-  canvas: {
+  gameArea: {
     flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  road: {
+    position: 'absolute',
+    left: 30,
+    right: 30,
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#2a2a2a',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderColor: '#FFD700',
+  },
+  laneDivider: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: '#FFF',
+    opacity: 0.5,
+  },
+  scenery: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  buildingLeft: {
+    position: 'absolute',
+    left: -20,
+    fontSize: 40,
+    opacity: 0.6,
+  },
+  buildingRight: {
+    position: 'absolute',
+    right: -20,
+    fontSize: 40,
+    opacity: 0.6,
+  },
+  player: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playerIcon: {
+    fontSize: 50,
+  },
+  shield: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: 'rgba(65, 105, 225, 0.3)',
+    borderWidth: 3,
+    borderColor: '#4169E1',
+  },
+  obstacle: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  obstacleIcon: {
+    fontSize: 50,
+  },
+  car: {},
+  bus: {},
+  barrier: {},
+  cow: {},
+  coin: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  coinIcon: {
+    fontSize: 25,
   },
   hud: {
     position: 'absolute',
-    top: 0,
+    top: 40,
     left: 0,
     right: 0,
-    paddingTop: 50,
     paddingHorizontal: 20,
   },
-  stats: {
+  hudTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  statText: {
+  hudText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     textShadowColor: '#000',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
   },
-  powerups: {
+  powerupIndicator: {
     position: 'absolute',
     right: 20,
-    top: 100,
-    gap: 10,
+    top: 60,
   },
   powerupIcon: {
     fontSize: 40,
   },
+  controls: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 30,
+  },
+  leftControls: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  controlButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFF',
+  },
+  jumpButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 215, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFD700',
+  },
+  controlIcon: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
   tutorial: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 120,
     alignSelf: 'center',
   },
   tutorialText: {
